@@ -1,0 +1,71 @@
+{layout name="public:layout"/}
+<h4 class="text-center text-danger">站点管理</h4>
+<form class="form-horizontal" action="{:url('site/save')}" method="post">
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">网站名称:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="name" value="{$siteInfo.name}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label  class="col-sm-2 control-label">关键字:</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" name="keywords" value="{$siteInfo.keywords}">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label">网站描述:</label>
+        <div class="col-sm-10">
+    <textarea class="form-control" name="desc" id="desc"
+              style="min-height:250px" >{$siteInfo.desc}</textarea>
+    </div>
+    </div>
+    {//网站是否关闭}
+    <div class="form-group">
+        <label class="col-sm-2 control-label">网站是否开启:</label>
+        <div class="col-sm-10">
+            <label class="radio-inline">
+                <input type="radio" name="is_open"  value="1"
+                {eq name="$siteInfo.is_open" value="1"}
+                checked=""
+                {/eq}
+                "> 开启
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_open"  value="0"
+                       {eq name="$siteInfo.is_open" value="0"}
+                       checked=""
+                       {/eq}
+                > 关闭
+            </label>
+        </div>
+        </div>
+    {//如果站点已经关闭,不在显示注册状态 }
+    {eq name="$siteInfo.is_open" value="1"}
+    {//网站是否允许注册}
+    <div class="form-group">
+        <label class="col-sm-2 control-label">网站是否允许注册:</label>
+        <div class="col-sm-10">
+            <label class="radio-inline">
+                <input type="radio" name="is_reg"  value="1"
+                       {eq name="$siteInfo.is_reg" value="1"}
+                       checked=""
+                       {/eq}
+                "> 允许
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_reg"  value="0"
+                       {eq name="$siteInfo.is_reg" value="0"}
+                       checked=""
+                       {/eq}
+                > 关闭
+            </label>
+        </div>
+    </div>
+    {/eq}
+    <!--隐藏域-->
+    <input type="hidden" name="id" value="{$siteInfo.id}">
+
+            <button type="submit" class="btn btn-primary">保存</button>
+
+</form>

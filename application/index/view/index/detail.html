@@ -1,0 +1,297 @@
+{extend name="public:base"/}
+{block name="body"}
+<div class="row">
+    <div class="col-md-8">
+        <div class="page-header">
+            <h2>{$art.cate_id|getCateName}</h2>
+        </div>
+        <div>
+            <img class="img-rounded" src="/uploads/{$art.title_img}"
+                 style="margin-right: 30px;object-fit: contain;float: left;width: 600px;"/>
+            <div class="content-detail" style="float: left;width: 70%">
+                <!-- 获取当前文章的id -->
+                <h4>{$art.title}</h4>
+                <p>作者:{$art.user_id|getUserName}&nbsp;&nbsp;&nbsp;&nbsp;
+                    发布时间：{$art.create_time}&nbsp;&nbsp;&nbsp;&nbsp;阅读量:{$art.pv}
+                </p>
+                <div>{$art.content|getArtContent}</div>
+                <button   class="btn btn-default" type="button" id="fav" user_id="{$art.user_id}"
+                          article_id="{$art.id}" session_id="{$Think.session.user_id}">点击收藏</button>
+                <button style="margin-left: 30px;" class="btn btn-warning" type="button" id="ok" user_id="{$art.user_id}"
+                        article_id="{$art.id}" session_id="{$Think.session.user_id}">点赞</button>
+                <hr/>
+            </div>
+        </div>
+
+        {volist name="ArtPl" id="artpl" }
+        <form class="form-horizontal"  action="" name="fM{$artpl.id}" id="fM{$artpl.id}" method="post">
+            <div class="content-detail" style="width:600px;float: left;margin-left: {$artpl.reply_id*10}px;">
+                <h5>{$artpl.lou}#</h5>
+                <p>作者:{$artpl.user_id|getUserName}&nbsp;&nbsp;&nbsp;&nbsp;
+                    发布时间：{$artpl.create_time}
+                </p>
+                <div >{$artpl.content}</div>
+                <div class="col-sm-12" id="chuandi" data-chuan="0" data-id="0" data-state="1">
+                    <button type="button" class="col-md-2 "  onclick="butPl({$artpl.id})" style="float:right;
+                    {eq name="$artpl.reply_id" value="1"}
+                    display:none
+                    {/eq}
+                    " id="PlHuifu{$artpl.id}" >回复</button>
+                    <!--隐藏发布拦-->
+                    <div name="content{$artpl.id}" id="content{$artpl.id}"   style="display:none">
+
+                        <textarea class="form-control" rows="4" name="pingl" id="pingl"></textarea>
+                        <input type="hidden" name="reply_id" id="reply_id" value="{$artpl.reply_id}">
+                        <input type="hidden" id="art_id_1" name="art_id_1" value="{$art.id}">
+                        <input type="hidden" id="user_id_1" name="user_id_1" value="{$Think.session.user_id}">
+                        <button type="button" onclick="Planniu({$artpl.id})" class="btn btn-info col-sm-3" name="anniu" id="anniu" >发布</button>
+                    </div>
+                </div>
+                <hr/>
+            </div>
+        </form>
+        {/volist}
+    </div>
+    <div class="col-md-8">
+        {$ArtPl|raw}
+    </div>
+    <form class="form-horizontal" action=""  method="get" id="loginpl" name="loginpl">
+        <input type="hidden" id="art_id" name="art_id" value="{$art.id}">
+        <input type="hidden" id="user_id" name="user_id" value="{$Think.session.user_id}">
+
+        <div class="form-group">
+            <label for="content" class="col-lg-10">评论</label>
+            <div class="col-sm-6">
+                <textarea class="form-control" name="content" id="content"  rows="4"></textarea>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="submit" class="col-sm-10 control-label "></label>
+            <div class="col-sm-10 ">
+                <button type="button" class="btn btn-info col-sm-3" id="submit">发布</button>
+            </div>
+        </div>
+    </form>
+    <p class="text-success" id="res"></p>
+    <script type="text/javascript">
+        $('#submit').on('click',function(){
+            $.getJSON("{:url('index/insertComment')}",$('#loginpl').serialize(),function(data){
+                if(data.status==1){
+
+                    alert(data.message);
+                    window.location.reload();
+                }else{
+                    alert(data.message)
+                    window.location.reload();
+                }
+            })
+
+        })
+//留念
+        function Planniu(id){
+            var fmId=document.getElementById('fM'+id);
+
+            $.ajax({
+                type:"POST",
+                url:"{:url('index/PlHuifu')}",
+                data:$(fmId).serialize(),
+                dataType:"json",
+                success:function(data){
+                    if(data.status==1){
+                        window.location.reload();
+                    }else{
+                        alert(data.message);
+                    }
+                }
+            })
+        }
+        function butPl(id){
+            /* var contentId=document.getElementById('content'+id);
+             var contentName=document.getElementsByName('content');
+             $(contentId).show('slow',function(even){
+             });*/
+
+            var contentId=document.getElementById('content'+id);
+            var state1=$('#chuandi').data('state');     /*//获取data-state的值计算按钮次数*/
+            var state2=$('#chuandi').data('id');            /*//获取data-id的值*/
+            if((state1==1)&&(state2!==id)){      /* //判断打开评论栏*/
+                $(contentId).show(1,function(even){
+
+                    $('#chuandi').data('state',2);
+                    $('#chuandi').data('id',id);
+                })}else{
+                if (state1==2) {        /*//判断关闭评论栏*/
+                    var PlId=document.getElementById('content'+state2);
+                    $(PlId).hide(1,function(even){
+
+                        $('#chuandi').data('state',1);
+                        $(contentId).data('id',0);
+                        if(state2!==id){        /*//相同id的话,评论栏操作*/
+
+                            $(contentId).show(1,function(even){
+                                $('#chuandi').data('state',2);
+                                $('#chuandi').data('id',id);
+                            })}else{
+                            $(contentId).hide(1,function(even){
+
+                                $('#chuandi').data('state',1);
+                                $('#chuandi').data('id',0);
+                            })
+                        }
+                    })
+
+                }
+
+            }
+        }
+
+        /*  $(document).ready(function(){
+              $("#fav").click(function(){
+                  var userId = $(this).attr('user_id')
+                  var artId = $(this).attr('article_id')
+                  if( userId && artId ){
+                  $.ajax({
+                      type:"get",
+                      url : "{:url('index/fav')}",
+                      data: {
+                          user_id    : userId,
+                          article_id : artId,
+
+                          time:new Date().getTime()
+                      },
+                      dataType : 'json',
+                      success: function(data){ //php数据传回来然后执行(所以必须要符合dataType的格式)
+                          switch(data.status){
+                              case 1:
+                                  alert(data.message);
+                                  window.location.href = "{:url('index/index')}";
+                                  break;
+                              case 0:
+                              case-1:
+                                  alert(data.message);
+                                  window.location.back();
+                                  break;
+                          }
+                      },
+                      error:function(jqXHR){
+                          alert("错误:"+jqXHR.message);
+                      }
+                  });}
+              });
+          });
+*/
+        /* $(document).ready(function(){
+             $("#fav").click(function(){
+                 $.ajax({
+                     type:"get",
+                     url:"{:url('index/fav')}",
+                     data: $("#login").serialize(),//数据传到PHP文件
+                     dataType:"json",
+                     success: function(data){ //php数据传回来然后执行(所以必须要符合dataType的格式)
+                         switch(data.status){
+                             case 1:
+                                 alert(data.message);
+                                 window.location.href = "{:url('index/index')}";
+                                 break;
+                             case 0:
+                             case-1:
+                                 alert(data.message);
+                                 window.location.back();
+                                 break;
+                         }
+                     },
+                     error:function(jqXHR){
+                         alert("错误:"+jqXHR.message);
+                     }
+                 });
+             });
+         });*/
+
+        $(function(){
+            $('#fav').on('click',function(){
+                //获取当前的用户id与栏目id,因为收藏表中有这二个字段
+                var userId = $(this).attr('user_id')
+                var artId = $(this).attr('article_id')
+                var sessionId = $(this).attr('session_id')
+                if (userId && artId){
+                    $.ajax(
+                        {
+                            type: 'get',
+                            url: "{:url('index/index/fav')}",
+                            data: {
+                                user_id: userId,
+                                article_id: artId,
+                                session_id:sessionId,
+                                time: new Date().getTime()
+                            },
+                            dataType: 'json',
+                            success  : function(data){
+                                switch(data.status){
+                                    case 1:
+                                        $('#fav').attr('class','btn btn-success');
+                                        $('#fav').text(data.message);
+                                        break;
+                                    case 0:
+                                        $('#fav').attr('class','btn btn-default');
+                                        $('#fav').text(data.message);
+                                        break;
+                                    case -1:
+                                        alert(data.message);
+                                        break;
+                                    case 2:
+                                        alert(data.message);
+                                        window.location.href = "{:url('user/login')}";
+                                        break;
+                                }
+                            },
+                            error:function(jqXHR){
+                                alert("错误:"+jqXHR.message);
+                            }
+                        }
+                    )}})})
+        $(function(){
+            $('#ok').on('click',function(){
+                //获取当前的用户id与栏目id,因为收藏表中有这二个字段
+                var userId = $(this).attr('user_id')
+                var artId = $(this).attr('article_id')
+                var sessionId = $(this).attr('session_id')
+                if (userId && artId){
+                    $.ajax(
+                        {
+                            type: 'get',
+                            url: "{:url('index/index/ok')}",
+                            data: {
+                                user_id: userId,
+                                article_id: artId,
+                                session_id:sessionId,
+                                time: new Date().getTime()
+                            },
+                            dataType: 'json',
+                            success  : function(data){
+                                switch(data.status){
+                                    case 1:
+                                        $('#ok').attr('class','btn btn-success');
+                                        $('#ok').text(data.message);
+                                        break;
+                                    case 0:
+                                        $('#ok').attr('class','btn btn-warning');
+                                        $('#ok').text(data.message);
+                                        break;
+                                    case -1:
+                                        alert(data.message);
+                                        break;
+                                    case 2:
+                                        alert(data.message);
+                                        window.location.href = "{:url('user/login')}";
+                                        break;
+
+                                }
+                            },
+                            error:function(jqXHR){
+                                alert("错误:"+jqXHR.message);
+                            }
+                        }
+                    )}})})
+    </script>
+
+    {/block}
